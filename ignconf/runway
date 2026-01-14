@@ -1,6 +1,0 @@
-#Runway
-scada_ip = "192.168.0.9"
-scada_mac = "b8:27:eb:d7:a5:3d"
-modcli_ip = "192.168.0.12"
-modcli_mac = "00:e0:62:22:d8:43"
-mod_port = "502"

@@ -1,6 +1,0 @@
-#Heat Exchanger
-scada_ip = “192.168.0.33”
-scada_mac = “b8:27:eb:fe:af:3f”
-modcli_ip = “192.168.0.39”
-modcli_mac = “00:d0:7c:1b:57:9a”
-mod_port = “502”
