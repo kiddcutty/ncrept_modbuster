@@ -28,7 +28,7 @@ def setconfig():
     } 
     
     if select in profiles:
-        source = f"./ignconf/{profiles[select]}"
+        source = f"./scadaconf/{profiles[select]}"
         destination = "./nm_config.py"
         
         try:
