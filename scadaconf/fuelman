@@ -1,0 +1,6 @@
+#Fuel Management
+scada_ip = “192.168.0.21”
+scada_mac = “b8:27:eb:e5:fd:8f”
+modcli_ip = “192.168.0.26”
+modcli_mac = “00:d0:7c:1b:d4:b6 ”
+mod_port = “502”

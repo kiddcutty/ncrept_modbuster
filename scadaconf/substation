@@ -1,0 +1,6 @@
+#Substation
+scada_ip = "192.168.0.11"
+scada_mac = "b8:27:eb:48:00:37"
+modcli_ip = "192.168.0.10"
+modcli_mac = "00:d0:7c:1b:54:94"
+mod_port = "502"
