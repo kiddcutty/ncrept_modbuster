@@ -400,6 +400,24 @@ def fool():
         return
         pass
 
+def pycheck():
+    if subprocess.getoutput("python3 --version | grep 3.9") == "":
+        print("Python 3.9 not detected... Installing packages\n\n")
+        time.sleep(1.5)
+        os.system("sudo apt install scapy build-essential python3.9 python3.9-dev libnetfilter-queue-dev")
+
+        os.system("python3.9 -m pip install netfilterqueue")
+        
+        setup()
+
+    else:
+        print("Python 3.9 detected... Installing packages")
+        time.sleep(1.5)
+        os.system("sudo apt install scapy build-essential libnetfilter-queue-dev")
+
+        os.system("python3 -m pip install netfilterqueue")
+
+
 def main():
     # Use a loop to keep the menu alive without recursion
     while True:
@@ -416,8 +434,10 @@ NCREPT ModbusTCP Python 3.9 Script
 by Gideon
 modified by Jesse Cutshall
         \n""")
-        
+
         time.sleep(0.5)
+        
+        pycheck()
         
         print("Select a function from the options below\n")
         print("1) Write to Coils/Holding Registers")
