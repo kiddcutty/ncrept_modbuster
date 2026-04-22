@@ -1,0 +1,6 @@
+#Waterplant
+scada_ip = "192.18.48.50"
+scada_mac = "02:1b:72:f5:82:11"
+modcli_ip = "192.18.48.51"
+modcli_mac = "62:7d:f8:7a:13:75"
+mod_port = "502"
