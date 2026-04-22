@@ -18,6 +18,7 @@ def setconfig():
     print("2) Substation")
     print("3) Heat Exchanger")
     print("4) Fuel Management")
+    print("5) Waterplant")
     print("q) Return to Main Menu")
     select = input(">> ").strip().lower()
     
@@ -25,7 +26,8 @@ def setconfig():
         "1": "runway",
         "2": "substation",
         "3": "heatex",
-        "4": "fuelman"
+        "4": "fuelman",
+        "5": "waterplant"
     } 
     
     if select in profiles:
