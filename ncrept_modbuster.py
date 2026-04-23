@@ -80,12 +80,12 @@ def etterspoof():
         )
         
         print("Waiting for Ettercap to initialize...")
-        time.sleep(3)  # Give it 3 seconds to scan hosts and drop privileges
+        time.sleep(5)  # Give it 3 seconds to scan hosts and drop privileges
         
-        if subprocess.getoutput("pgrep -x ettercap") != "":
-            print("Successfully enabled ARP Spoofing.")
+        if subprocess.getoutput("pgrep -fa ettercap") != "":
+            print("Successfully enabled ARP Spoofing. Log at /var/log/ettercap.log")
         else:
-            print("Failed to enable Ettercap. Check /etc/ettercap/etter.conf UID settings.")
+            print("Ettercap Failed to Run")
 
     else:
         print("Ettercap is already active!")
