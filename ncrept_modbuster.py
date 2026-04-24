@@ -89,7 +89,6 @@ def etterspoof():
 
     else:
         print("Ettercap is already active!")
-    
     time.sleep(1)
 
 def dos():
@@ -400,6 +399,7 @@ def main():
     # Use a loop to keep the menu alive without recursion
     while True:
         clear()
+        os.system("pkill", "-9" "ettercap")
         print(""" 
 ---------------------------------------------
        __   __   __        __  ___  ___  __  
@@ -451,8 +451,7 @@ modified by Jesse Cutshall
                 
                 
         except KeyboardInterrupt:
-            print("\nExiting...")
-            os.system(pkill -9 ettercap) 
+            print("\nExiting...") 
             sys.exit(0)
 
 if __name__ == "__main__":
