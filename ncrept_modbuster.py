@@ -399,7 +399,7 @@ def main():
     # Use a loop to keep the menu alive without recursion
     while True:
         clear()
-        os.system("pkill", "-9" "ettercap")
+        os.system("pkill -9 ettercap > /dev/null 2>&1")
         print(""" 
 ---------------------------------------------
        __   __   __        __  ___  ___  __  
