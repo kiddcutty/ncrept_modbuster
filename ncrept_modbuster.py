@@ -303,7 +303,7 @@ def fool():
             if cflag == "0":
                 print("No Modbus Raw Layer found...\n\n")
                 time.sleep(1)
-                fool()
+                return
             
             
             coil_address = input("Enter Coil Address: ")
@@ -375,21 +375,16 @@ def fool():
         pass
 
 def pycheck():
-    if subprocess.getoutput("python3 --version | grep 3.9") == "":
-        print("Python 3.9 not detected... Installing packages\n\n")
-        time.sleep(1.5)
-        os.system("sudo apt install scapy build-essential python3.9 python3.9-dev libnetfilter-queue-dev")
-
-        os.system("python3.9 -m pip install netfilterqueue")
-        
-        setup()
-
-    else:
+    if sys.version_info.major == 3 and sys.version_info.minor == 9:
         print("Python 3.9 detected... Installing packages")
         time.sleep(1.5)
-        os.system("sudo apt install scapy build-essential libnetfilter-queue-dev")
-
-        os.system("python3 -m pip install netfilterqueue")
+        os.system("sudo apt update && sudo apt install -y scapy build-essential libnetfilter-queue-dev")
+        os.system(f"{sys.executable} -m pip install netfilterqueue")
+    else:
+        print(f"Current Python version is {sys.version_info.major}.{sys.version_info.minor}. targetting 3.9 setup...")
+        time.sleep(1.5)
+        os.system("sudo apt update && sudo apt install -y scapy build-essential python3.9 python3.9-dev libnetfilter-queue-dev")
+        os.system("python3.9 -m pip install netfilterqueue")
 
 
 def main():
