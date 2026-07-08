@@ -256,6 +256,7 @@ def fool():
                 pass
             nfqueue.bind(0, callback)
 
+
     def preserve():
         def init():
             global cflag
@@ -269,9 +270,7 @@ def fool():
                     coildata = packet[Raw].load[9:]
                     global cflag
                     cflag = "0"
-                    print(coildata)
-                    
-                    
+                    print(coildata)           
                     
             sniff(filter="port "+ nm_config.mod_port +" and src host "+ nm_config.modcli_ip, prn=pull, count=10)
         
@@ -328,7 +327,7 @@ def fool():
             nfqueue.run()
             
         except KeyboardInterrupt:
-            print("Reseting iptables to default...")
+            print("Resetting iptables to default...")
             subprocess.run(["iptables", "-F"], check=True)
             print("Exiting...")
             time.sleep(0.5)
@@ -362,11 +361,11 @@ def fool():
         elif(select == "3"):
             nf()
         elif(select == "q"):
-            return
+            main()
         else:
             print("Invalid option, returning to menu")
             time.sleep(0.5)
-            nf()
+            main()
     except KeyboardInterrupt:
         print("Reseting iptables to default...")
         subprocess.run(["iptables", "-F"], check=True)
@@ -378,12 +377,12 @@ def pycheck():
     if sys.version_info.major == 3 and sys.version_info.minor == 9:
         print("Python 3.9 detected... Installing packages")
         time.sleep(1.5)
-        os.system("sudo apt update && sudo apt install -y scapy build-essential libnetfilter-queue-dev")
+        os.system("apt update && apt install -y scapy build-essential libnetfilter-queue-dev")
         os.system(f"{sys.executable} -m pip install netfilterqueue")
     else:
         print(f"Current Python version is {sys.version_info.major}.{sys.version_info.minor}. targetting 3.9 setup...")
         time.sleep(1.5)
-        os.system("sudo apt update && sudo apt install -y scapy build-essential python3.9 python3.9-dev libnetfilter-queue-dev")
+        os.system("apt update && apt install -y scapy build-essential python3.9 python3.9-dev libnetfilter-queue-dev")
         os.system("python3.9 -m pip install netfilterqueue")
 
 
