@@ -319,7 +319,7 @@ def fool():
             # Pause execution while msfconsole is setting up
             exit_code = process.wait()
             
-            if exit_code == 0
+            if exit_code == 0:
                 subprocess.run(["iptables", "-A", "FORWARD", "-p", "tcp", "-s", nm_config.modcli_ip, "--sport", nm_config.mod_port, "-j", "NFQUEUE", "--queue-num", "0"], check=True)
             
             print("Intercepting Packets...")
