@@ -121,8 +121,8 @@ def dos():
         time.sleep(1)
 
     except Exception as e:
-        print(f"\n[!] Error launching hping3: {e}")
-        print("Ensure hping3 is installed.")
+        print(f"\n[!] Error launching NetStress: {e}")
+        print("Ensure NetStress is installed.")
         time.sleep(2)
 
 def traffic():
