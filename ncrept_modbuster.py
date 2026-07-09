@@ -345,7 +345,7 @@ def fool():
             print("Ettercap is running!\n")
             
         print ("Selected option: Fool SCADA\n")
-        time.sleep(0.5)
+        time.sleep(1.0)
         
         print("Select an attack variation\n")
         print("1) Randomize SCADA (Preserve PLC)")
@@ -355,12 +355,20 @@ def fool():
         select = input(">> ")
             
         if(select == "1"):
+            print ("Selected option: Randomize SCADA (Preserve PLC)\n")
+            time.sleep(1.0)
             randpacket()
         elif(select == "2"):
+            print ("Selected option: Preserve SCADA (Clear PLC)\n")
+            time.sleep(1.0)
             preserve()
         elif(select == "3"):
+            print ("Selected option: Clear SCADA (Preserve PLC)\n")
+            time.sleep(1.0)
             nf()
         elif(select == "q"):
+            print ("Selected option: Return to Main Menu\n")
+            time.sleep(1.0)
             main()
         else:
             print("Invalid option, returning to menu")
