@@ -261,19 +261,16 @@ def fool():
         global coildata, cflag
         coildata = b""
         cflag = "0"
+        
+        def pull(packet):
+            global coildata, cflag
+            if packet.haslayer(Raw):
+                print("Modbus Packet Intercepted with Raw Layer")
+                coildata = packet[Raw].load[9:]
+                cflag = "1"
+            
         def init():
-            global cflag
-            cflag = "0"
-            
-            def pull(packet):
-                global coildata, cflag
-                if packet.haslayer(Raw):
-                    print("Modbus Packet Intercepted with Raw Layer")
-                    coildata = packet[Raw].load[9:]
-                    cflag = "1"
-            
-            def init():
-                sniff(filter="port " + nm_config.mod_port, prn=pull, count=10, timeout=10.0)
+            sniff(filter="port " + nm_config.mod_port, prn=pull, count=10, timeout=10.0)
         
         def callback(packet):
         
